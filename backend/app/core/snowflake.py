@@ -1,7 +1,6 @@
 import threading
 import time
 
-
 class SnowflakeGenerator:
   def __init__(self, worker_id: int = 1):
     self.epoch = 1776038400000
