@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.core.snowflake import snowflake_gen
 from app.core.security import create_access_token, get_password_hash, verify_password
+from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/api/v1/users", tags=["Users"])
 
@@ -65,3 +66,7 @@ async def login_user(
     "access_token": access_token,
     "token_type": "bearer"
   }
+
+@router.get("/me", response_model=UserResponse)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+  return current_user
