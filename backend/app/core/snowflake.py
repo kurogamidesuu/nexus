@@ -51,7 +51,6 @@ class SnowflakeGenerator:
 
       return timestamp_shifted | worker_shifted | self.sequence
     
-
 if __name__ == "__main__":
   generator = SnowflakeGenerator(worker_id=1)
 
@@ -59,3 +58,5 @@ if __name__ == "__main__":
   for _ in range(5):
     snowflake = generator.generate()
     print(f"ID: {snowflake} | Binary: {bin(snowflake)}")
+
+snowflake_gen = SnowflakeGenerator(worker_id=1)
