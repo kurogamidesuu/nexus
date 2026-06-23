@@ -42,12 +42,26 @@ async def websocket_endpoint(
 
   try:
     while True:
-      data = await websocket.receive_text()
-      payload = {
-        "sender": user.username,
-        "content": data
-      }
-      await manager.broadcast(payload)
+      data = await websocket.receive_json()
+
+      action = data.get("action")
+      channel_id = data.get("channel_id")
+
+      if not action or not channel_id:
+        continue
+
+      if action == "subscribe":
+        manager.subscribe_to_channel(str(user.id), channel_id)
+      elif action == "message":
+        content = data.get("content")
+        if content:
+          payload = {
+            "sender": user.username,
+            "channel_id": channel_id,
+            "content": content
+          }
+
+          await manager.broadcast_to_channel(channel_id, payload)
   except WebSocketDisconnect:
     manager.disconnect(str(user.id))
     
