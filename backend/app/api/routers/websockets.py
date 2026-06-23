@@ -42,7 +42,11 @@ async def websocket_endpoint(
 
   try:
     while True:
-      data = await websocket.receive_json()
+      try:
+        data = await websocket.receive_json()
+      except Exception:
+        await websocket.send_json({"error": "Invalid JSON format"})
+        continue
 
       action = data.get("action")
       channel_id = data.get("channel_id")

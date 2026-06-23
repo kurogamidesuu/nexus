@@ -1,63 +1,111 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Nexus Real-Time Test</title>
     <style>
-        body { font-family: sans-serif; background: #1e1e1e; color: #fff; padding: 20px; }
-        #chat { border: 1px solid #444; height: 300px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #2d2d2d;}
-        input, button { padding: 10px; }
-        input { width: 300px; }
+      body {
+        font-family: sans-serif;
+        background: #1e1e1e;
+        color: #fff;
+        padding: 20px;
+      }
+      #chat {
+        border: 1px solid #444;
+        height: 300px;
+        overflow-y: scroll;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #2d2d2d;
+      }
+      input,
+      button {
+        padding: 10px;
+      }
+      input {
+        width: 300px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h2>Nexus Gateway Test</h2>
-    
-    <label>Paste your JWT Token here:</label><br>
-    <input type="text" id="tokenInput" placeholder="eyJhbGciOi..."><br><br>
 
-    <button onclick="connect()">1. Connect to Gateway</button><br><br>
+    <label>Paste your JWT Token here:</label><br />
+    <input
+      type="text"
+      id="tokenInput"
+      placeholder="eyJhbGciOi..."
+    /><br /><br />
+
+    <button onclick="connect()">1. Connect to Gateway</button><br /><br />
 
     <div id="chat"></div>
-    
-    <input type="text" id="messageText" autocomplete="off" placeholder="Type a message...">
+
+    <input
+      type="text"
+      id="messageText"
+      autocomplete="off"
+      placeholder="Type a message..."
+    />
     <button onclick="sendMessage()">2. Send Message</button>
 
     <script>
-        let ws;
+      let ws;
 
-        function connect() {
-            const token = document.getElementById("tokenInput").value;
-            if (!token) return alert("Please enter a token first!");
+      function connect() {
+        const token = document.getElementById("tokenInput").value;
+        if (!token) return alert("Please enter a token first!");
 
-            ws = new WebSocket(`ws://127.0.0.1:8000/api/v1/ws?token=${token}`);
+        ws = new WebSocket(`ws://127.0.0.1:8000/api/v1/ws?token=${token}`);
 
-            ws.onopen = function() {
-                addMessage("System", "Connected to Nexus Gateway!", "lime");
-            };
+        ws.onopen = function () {
+          addMessage("System", "Connected to Gateway!", "lime");
 
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                addMessage(data.sender, data.content, "cyan");
-            };
+          const subscribeFrame = {
+            action: "subscribe",
+            channel_id: "general",
+          };
+          ws.send(JSON.stringify(subscribeFrame));
+          addMessage("System", "Subscribed to channel: general", "yellow");
+        };
 
-            ws.onclose = function(event) {
-                addMessage("System", "Disconnected from server.", "red");
-            };
-        }
+        ws.onmessage = function (event) {
+          const data = JSON.parse(event.data);
+          if (data.error) {
+            addMessage("Error", data.error, "red");
+          } else {
+            addMessage(
+              data.sender,
+              `[${data.channel_id}] ${data.content}`,
+              "cyan",
+            );
+          }
+        };
 
-        function sendMessage() {
-            const input = document.getElementById("messageText");
-            ws.send(input.value);
-            input.value = '';
-        }
+        ws.onclose = function (event) {
+          addMessage("System", "Disconnected from server.", "red");
+        };
+      }
 
-        function addMessage(sender, text, color) {
-            const chat = document.getElementById("chat");
-            const msg = document.createElement("div");
-            msg.innerHTML = `<strong style="color: ${color}">${sender}:</strong> ${text}`;
-            chat.appendChild(msg);
-            chat.scrollTop = chat.scrollHeight;
-        }
+      function sendMessage() {
+        const input = document.getElementById("messageText");
+
+        const messageFrame = {
+          action: "message",
+          channel_id: "general",
+          content: input.value,
+        };
+
+        ws.send(JSON.stringify(messageFrame));
+        input.value = "";
+      }
+
+      function addMessage(sender, text, color) {
+        const chat = document.getElementById("chat");
+        const msg = document.createElement("div");
+        msg.innerHTML = `<strong style="color: ${color}">${sender}:</strong> ${text}`;
+        chat.appendChild(msg);
+        chat.scrollTop = chat.scrollHeight;
+      }
     </script>
-</body>
+  </body>
 </html>

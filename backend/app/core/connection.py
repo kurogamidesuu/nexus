@@ -30,9 +30,12 @@ class ConnectionManager:
   async def broadcast_to_channel(self, channel_id: str, message: dict):
     subscribers = self.channel_subscriptions.get(channel_id, set())
 
-    for user_id in subscribers:
+    for user_id in list(subscribers):
       websocket = self.active_connections.get(user_id)
       if websocket:
-        await websocket.send_json(message)
+        try:
+          await websocket.send_json(message)
+        except Exception:
+          self.disconnect(user_id)
 
 manager = ConnectionManager()
