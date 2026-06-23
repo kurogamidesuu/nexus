@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.core.snowflake import snowflake_gen
-from app.api.routers import users
+from app.api.routers import users, websockets
 
 app = FastAPI(
   title="Nexus API",
@@ -9,6 +9,7 @@ app = FastAPI(
 )
 
 app.include_router(users.router)
+app.include_router(websockets.router)
 
 @app.get("/api/v1/snowflake/generate")
 def generate_id():
