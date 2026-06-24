@@ -1,11 +1,11 @@
 import { apiClient, setAccessToken } from "./client";
 
-interface loginCredentials {
-  usernamae: string;
+export interface loginCredentialsInterface {
+  username: string;
   password: string;
 }
 
-interface userDataInterface extends loginCredentials {
+export interface userDataInterface extends loginCredentialsInterface {
   email: string;
 }
 
@@ -15,9 +15,9 @@ export const authService = {
     return res.data;
   },
 
-  login: async (credentials: loginCredentials) => {
+  login: async (credentials: loginCredentialsInterface) => {
     const formData = new URLSearchParams();
-    formData.append("username", credentials.usernamae);
+    formData.append("username", credentials.username);
     formData.append("password", credentials.password);
 
     const res = await apiClient.post("/users/login", formData, {
