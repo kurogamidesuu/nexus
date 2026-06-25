@@ -1,3 +1,4 @@
+import ChannelView from "./components/ChannelView";
 import Login from "./components/Login";
 import { useAuth } from "./context/AuthContext";
 
@@ -37,7 +38,7 @@ function App() {
       style={{
         height: "100vh",
         width: "100vw",
-        backgroundColor: "#1e1e1e",
+        backgroundColor: "var(--background-primary)",
         color: "white",
       }}
     >
@@ -45,27 +46,71 @@ function App() {
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             height: "100vh",
-            justifyContent: "center",
-            alignItems: "center",
           }}
         >
-          <h1>Welcome back, {user.username}!</h1>
-          <button
-            onClick={logout}
+          <div
             style={{
-              padding: "10px 20px",
-              marginTop: "20px",
-              backgroundColor: "#ed4245",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
+              width: "240px",
+              backgroundColor: "var(--background-secondary)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              padding: "16px",
             }}
           >
-            Log Out
-          </button>
+            <div>
+              <h3
+                style={{
+                  fontSize: "14px",
+                  color: "var(--text-muted)",
+                  textTransform: "uppercase",
+                  marginBottom: "16px",
+                }}
+              >
+                Nexus App
+              </h3>
+              <div
+                style={{
+                  backgroundColor: "var(--background-tertiary)",
+                  padding: "10px",
+                  borderRadius: "4px",
+                  color: "var(--text-normal)",
+                }}
+              >
+                # general
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                backgroundColor: "var(--background-tertiary)",
+                padding: "10px",
+                borderRadius: "4px",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>{user.username}</span>
+              <button
+                onClick={logout}
+                style={{
+                  backgroundColor: "var(--status-danger)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  padding: "4px 8px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+
+          <ChannelView channelId="general" />
         </div>
       ) : (
         <Login />
