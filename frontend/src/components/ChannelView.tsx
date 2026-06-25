@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import styles from "./ChannelView.module.css";
 import { useWebSocket } from "../hooks/useWebsocket";
+import { channelService } from "../api/channels";
 
 interface ChannelViewProps {
   channelId: string;
@@ -8,16 +9,39 @@ interface ChannelViewProps {
 
 const ChannelView = ({ channelId }: ChannelViewProps) => {
   const [inputValue, setInputValue] = useState("");
-  const { messages, connect, disconnect, sendMessage } =
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+  const { messages, setMessages, connect, disconnect, sendMessage } =
     useWebSocket(channelId);
   const feedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    connect();
+    let isMounted = true;
+
+    const loadHistoryAndConnect = async () => {
+      setIsLoadingHistory(true);
+      try {
+        const history = await channelService.getMessages(channelId);
+        if (isMounted) {
+          setMessages(history);
+        }
+      } catch (error) {
+        console.error("Failed to load history:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingHistory(false);
+          connect();
+        }
+      }
+    };
+
+    loadHistoryAndConnect();
+
     return () => {
+      isMounted = false;
       disconnect();
     };
-  }, [connect, disconnect]);
+  }, [channelId, connect, disconnect, setMessages]);
 
   useEffect(() => {
     if (feedRef.current) {
@@ -33,6 +57,17 @@ const ChannelView = ({ channelId }: ChannelViewProps) => {
     setInputValue("");
   };
 
+  if (isLoadingHistory) {
+    return (
+      <div
+        className={styles.container}
+        style={{ justifyContent: "center", alignItems: "center" }}
+      >
+        <h3 style={{ color: "var(--text-muted)" }}>Loading history...</h3>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       {/* Header */}
@@ -41,7 +76,7 @@ const ChannelView = ({ channelId }: ChannelViewProps) => {
         <span className={styles.channelName}>{channelId}</span>
       </header>
 
-      {/* The Message Feed */}
+      {/* Message Feed */}
       <div className={styles.messageFeed} ref={feedRef}>
         {messages.map((msg, index) => (
           // Message Box
