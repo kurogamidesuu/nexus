@@ -1,3 +1,5 @@
+from math import e
+
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,6 +49,8 @@ async def websocket_endpoint(
     while True:
       try:
         data = await websocket.receive_json()
+      except WebSocketDisconnect:
+        raise
       except Exception:
         await websocket.send_json({"error": "Invalid JSON format"})
         continue

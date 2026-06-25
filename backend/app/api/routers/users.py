@@ -71,7 +71,8 @@ async def login_user(
     httponly=True,
     secure=False,
     samesite="lax",
-    max_age=7 * 24 * 60 * 60
+    max_age=7 * 24 * 60 * 60,
+    path="/"
   )
 
   return {

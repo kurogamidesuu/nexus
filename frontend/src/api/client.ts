@@ -9,7 +9,7 @@ export const setAccessToken = (token: string | null) => {
 export const getAccessToken = () => inMemoryAccessToken;
 
 export const apiClient = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/v1",
+  baseURL: "http://localhost:8000/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -36,7 +36,7 @@ apiClient.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://127.0.0.1:8000/api/v1/users/refresh",
+          "http://localhost:8000/api/v1/users/refresh",
           null,
           { withCredentials: true },
         );
@@ -46,7 +46,7 @@ apiClient.interceptors.response.use(
         setAccessToken(new_token);
         originalRequest.headers.Authorization = `Bearer ${new_token}`;
 
-        return axios(originalRequest);
+        return apiClient(originalRequest);
       } catch (refreshError) {
         setAccessToken(null);
         return Promise.reject(refreshError);
