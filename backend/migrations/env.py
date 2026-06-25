@@ -15,6 +15,8 @@ load_dotenv()
 from app.core.database import Base
 from app.models.user import User
 from app.models.message import Message
+from app.models.guild import Guild, GuildMember
+from app.models.channel import Channel
 
 config = context.config
 
