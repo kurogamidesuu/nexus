@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { guildService, type GuildPayload } from "../api/guilds";
 import styles from "./GuildSidebar.module.css";
+import axios from "axios";
 
 interface GuildSidebarProps {
   activeGuildId: string | null;
@@ -29,15 +30,45 @@ const GuildSidebar = ({ activeGuildId, onSelectGuild }: GuildSidebarProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleCreateGuild = async () => {
-    const name = prompt("Enter a name for your new server:");
-    if (name && name.trim()) {
-      try {
-        const newGuild = await guildService.createGuild(name);
-        setGuilds([...guilds, newGuild]);
-        onSelectGuild(newGuild.id);
-      } catch {
-        alert("Failed to create server.");
+  const handleServerAction = async () => {
+    const action = prompt(
+      "Type 'create' to set up a new server, or 'join' to enter an invite link/code:",
+    );
+    if (!action) return;
+
+    const sanitizedAction = action.trim().toLowerCase();
+
+    if (sanitizedAction === "create") {
+      const name = prompt("Enter a name for your new server:");
+      if (name && name.trim()) {
+        try {
+          const newGuild = await guildService.createGuild(name);
+          setGuilds((prev) => [...prev, newGuild]);
+          onSelectGuild(newGuild.id);
+        } catch {
+          alert("Failed to create server.");
+        }
+      }
+    } else if (sanitizedAction === "join") {
+      const inviteInput = prompt("Paste your invite code or link:");
+      if (inviteInput && inviteInput.trim()) {
+        try {
+          const code =
+            inviteInput.split("/").pop()?.trim() || inviteInput.trim();
+
+          const joinedGuild = await guildService.joinGuild(code);
+          setGuilds((prev) => [...prev, joinedGuild]);
+          onSelectGuild(joinedGuild.id);
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            alert(
+              error.response?.data?.detail ??
+                "Failed to join server using this code.",
+            );
+          } else {
+            alert("An unexpected error occurred.");
+          }
+        }
       }
     }
   };
@@ -70,8 +101,8 @@ const GuildSidebar = ({ activeGuildId, onSelectGuild }: GuildSidebarProps) => {
 
       <div
         className={`${styles.guildIcon} ${styles.addServer}`}
-        onClick={handleCreateGuild}
-        title="Add a Server"
+        onClick={handleServerAction}
+        title="Add or Join a Server"
       >
         +
       </div>

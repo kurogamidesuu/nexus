@@ -22,4 +22,14 @@ export const guildService = {
     const res = await apiClient.get(`/guilds/${guildId}/channels`);
     return res.data;
   },
+
+  createInvite: async (guildId: string): Promise<{ code: string }> => {
+    const res = await apiClient.post(`/guilds/${guildId}/invites`);
+    return res.data;
+  },
+
+  joinGuild: async (code: string): Promise<GuildPayload> => {
+    const res = await apiClient.post(`/guilds/join/${code}`);
+    return res.data;
+  },
 };
