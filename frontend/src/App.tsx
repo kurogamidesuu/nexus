@@ -1,9 +1,14 @@
-import ChannelView from "./components/ChannelView";
-import Login from "./components/Login";
+import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
+import Login from "./components/Login";
+import ChannelView from "./components/ChannelView";
+import GuildSidebar from "./components/GuildSidebar";
 
 function App() {
   const { user, isLoading, logout } = useAuth();
+
+  const [activeGuildId, setActiveGuildId] = useState<string | null>(null);
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -13,22 +18,11 @@ function App() {
           height: "100vh",
           justifyContent: "center",
           alignItems: "center",
-          gap: "1em",
           backgroundColor: "#1e1e1e",
           color: "white",
         }}
       >
-        <div
-          className="loader"
-          style={{
-            height: "25px",
-            width: "25px",
-            background: "transparent",
-            border: "3px solid white",
-            borderRadius: "100%",
-          }}
-        />
-        <h3>Loading Nexus...</h3>
+        <h2>Loading Nexus...</h2>
       </div>
     );
   }
@@ -43,12 +37,17 @@ function App() {
       }}
     >
       {user ? (
-        <div
-          style={{
-            display: "flex",
-            height: "100vh",
-          }}
-        >
+        <div style={{ display: "flex", height: "100%" }}>
+          {/* Servers */}
+          <GuildSidebar
+            activeGuildId={activeGuildId}
+            onSelectGuild={(id) => {
+              setActiveGuildId(id);
+              setActiveChannelId(null);
+            }}
+          />
+
+          {/* Channels */}
           <div
             style={{
               width: "240px",
@@ -68,14 +67,16 @@ function App() {
                   marginBottom: "16px",
                 }}
               >
-                Nexus App
+                {activeGuildId ? "Server Channels" : "Direct Messages"}
               </h3>
+
               <div
                 style={{
                   backgroundColor: "var(--background-tertiary)",
                   padding: "10px",
                   borderRadius: "4px",
                   color: "var(--text-normal)",
+                  cursor: "pointer",
                 }}
               >
                 # general
@@ -92,7 +93,16 @@ function App() {
                 borderRadius: "4px",
               }}
             >
-              <span style={{ fontWeight: "bold" }}>{user.username}</span>
+              <span
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {user.username}
+              </span>
               <button
                 onClick={logout}
                 style={{
@@ -103,14 +113,32 @@ function App() {
                   padding: "4px 8px",
                   cursor: "pointer",
                   fontSize: "12px",
+                  fontWeight: "bold",
                 }}
               >
-                Logout
+                Log Out
               </button>
             </div>
           </div>
 
-          <ChannelView channelId="general" />
+          {/* Main Content Area */}
+          <div style={{ flex: 1 }}>
+            {activeGuildId ? (
+              <ChannelView channelId="general" />
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  height: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <h2>Select a server to start chatting</h2>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <Login />

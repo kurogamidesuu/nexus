@@ -1,6 +1,13 @@
 import type { MessagePayload } from "../hooks/useWebsocket";
 import { apiClient } from "./client";
 
+export interface ChannelResponse {
+  id: string;
+  guild_id: string;
+  name: string;
+  created_at: string;
+}
+
 interface responseSchema {
   id: "string";
   channel_id: "string";
