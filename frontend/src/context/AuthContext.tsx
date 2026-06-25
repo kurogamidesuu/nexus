@@ -23,7 +23,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: loginCredentialsInterface) => Promise<void>;
   register: (userData: userDataInterface) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -58,9 +58,15 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    setUser(null);
-    window.location.href = "/";
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setUser(null);
+      window.location.href = "/";
+    }
   };
 
   return (

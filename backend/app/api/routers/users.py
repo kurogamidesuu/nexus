@@ -123,3 +123,15 @@ async def refresh_access_token(
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)):
   return current_user
+
+@router.post("/logout")
+async def logout_user(response: Response):
+  response.delete_cookie(
+    key="refresh_token",
+    path="/",
+    httponly=True,
+    secure=False,
+    samesite="lax"
+  )
+
+  return {"detail": "Successfully logged out"}

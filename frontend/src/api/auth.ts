@@ -37,4 +37,9 @@ export const authService = {
     const res = await apiClient.get("/users/me");
     return res.data;
   },
+
+  logout: async () => {
+    await apiClient.post("/users/logout");
+    setAccessToken(null);
+  },
 };
