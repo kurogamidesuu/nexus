@@ -4,7 +4,7 @@ import styles from "./GuildSidebar.module.css";
 
 interface GuildSidebarProps {
   activeGuildId: string | null;
-  onSelectGuild: (id: string) => void;
+  onSelectGuild: (id: string | null) => void;
 }
 
 const GuildSidebar = ({ activeGuildId, onSelectGuild }: GuildSidebarProps) => {
@@ -45,7 +45,7 @@ const GuildSidebar = ({ activeGuildId, onSelectGuild }: GuildSidebarProps) => {
       {/* DM section */}
       <div
         className={`${styles.guildIcon} ${!activeGuildId ? styles.active : ""}`}
-        onClick={() => onSelectGuild("")}
+        onClick={() => onSelectGuild(null)}
       >
         DM
       </div>

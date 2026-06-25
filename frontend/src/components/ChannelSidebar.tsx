@@ -7,7 +7,7 @@ import styles from "./ChannelSidebar.module.css";
 interface Props {
   activeGuildId: string | null;
   activeChannelId: string | null;
-  onSelectChannel: (id: string) => void;
+  onSelectChannel: (id: string, name: string) => void;
 }
 
 const ChannelSidebar = ({
@@ -29,7 +29,7 @@ const ChannelSidebar = ({
         setChannels(data);
 
         if (data.length > 0 && !activeChannelId) {
-          onSelectChannel(data[0].id);
+          onSelectChannel(data[0].id, data[0].name);
         }
       } catch (error) {
         console.error("Failed to fetch channels", error);
@@ -50,7 +50,7 @@ const ChannelSidebar = ({
           <div
             key={channel.id}
             className={`${styles.channelItem} ${activeChannelId === channel.id ? styles.active : ""}`}
-            onClick={() => onSelectChannel(channel.id)}
+            onClick={() => onSelectChannel(channel.id, channel.name)}
           >
             <span className={styles.hash}>#</span>
             {channel.name}

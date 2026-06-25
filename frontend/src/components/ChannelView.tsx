@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import styles from "./ChannelView.module.css";
-import { useWebSocket } from "../hooks/useWebsocket";
+import { useWebSocket } from "../hooks/useWebSocket";
 import { channelService } from "../api/channels";
 
 interface ChannelViewProps {
   channelId: string;
+  channelName: string;
 }
 
-const ChannelView = ({ channelId }: ChannelViewProps) => {
+const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
   const [inputValue, setInputValue] = useState("");
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
@@ -73,13 +74,12 @@ const ChannelView = ({ channelId }: ChannelViewProps) => {
       {/* Header */}
       <header className={styles.header}>
         <span className={styles.hash}>#</span>
-        <span className={styles.channelName}>{channelId}</span>
+        <span className={styles.channelName}>{channelName}</span>{" "}
       </header>
 
       {/* Message Feed */}
       <div className={styles.messageFeed} ref={feedRef}>
         {messages.map((msg, index) => (
-          // Message Box
           <div key={index} className={styles.message}>
             <div className={styles.messageHeader}>
               <span className={styles.sender}>{msg.sender}</span>
@@ -103,7 +103,7 @@ const ChannelView = ({ channelId }: ChannelViewProps) => {
             className={styles.input}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={`Message #${channelId}`}
+            placeholder={`Message #${channelName}`}
             autoComplete="off"
             autoCorrect="off"
           />

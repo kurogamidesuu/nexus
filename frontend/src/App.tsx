@@ -10,6 +10,7 @@ function App() {
 
   const [activeGuildId, setActiveGuildId] = useState<string | null>(null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
+  const [activeChannelName, setActiveChannelName] = useState<string>("");
 
   if (isLoading) {
     return (
@@ -45,6 +46,7 @@ function App() {
             onSelectGuild={(id) => {
               setActiveGuildId(id);
               setActiveChannelId(null);
+              setActiveChannelName("");
             }}
           />
 
@@ -52,13 +54,20 @@ function App() {
           <ChannelSidebar
             activeGuildId={activeGuildId}
             activeChannelId={activeChannelId}
-            onSelectChannel={setActiveChannelId}
+            onSelectChannel={(id, name) => {
+              setActiveChannelId(id);
+              setActiveChannelName(name);
+            }}
           />
 
           {/* 3. The Main Content Area */}
           <div style={{ flex: 1 }}>
             {activeChannelId ? (
-              <ChannelView channelId={activeChannelId} key={activeChannelId} />
+              <ChannelView
+                channelId={activeChannelId}
+                channelName={activeChannelName}
+                key={activeChannelId}
+              />
             ) : (
               <div
                 style={{
