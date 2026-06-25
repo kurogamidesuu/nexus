@@ -25,7 +25,9 @@ const GuildSidebar = ({ activeGuildId, onSelectGuild }: GuildSidebarProps) => {
     };
 
     fetchGuilds();
-  }, [activeGuildId, onSelectGuild]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCreateGuild = async () => {
     const name = prompt("Enter a name for your new server:");

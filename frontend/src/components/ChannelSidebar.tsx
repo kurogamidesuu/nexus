@@ -37,7 +37,9 @@ const ChannelSidebar = ({
     };
 
     fetchChannels();
-  }, [activeGuildId, activeChannelId, onSelectChannel]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGuildId]);
 
   return (
     <div className={styles.sidebar}>
