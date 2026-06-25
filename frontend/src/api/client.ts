@@ -6,6 +6,8 @@ export const setAccessToken = (token: string | null) => {
   inMemoryAccessToken = token;
 };
 
+export const getAccessToken = () => inMemoryAccessToken;
+
 export const apiClient = axios.create({
   baseURL: "http://127.0.0.1:8000/api/v1",
   headers: {
