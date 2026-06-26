@@ -3,9 +3,16 @@ version: "3.8"
 services:
   db:
     image: "postgres:15-alpine"
+    container_name: nexus-db
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=nexus_user
       - POSTGRES_PASSWORD=securepassword
       - POSTGRES_DB=nexus_db
+
+  redis:
+    image: "redis:alpine"
+    container_name: nexus-redis
+    ports:
+      - "6379:6379"

@@ -1,5 +1,3 @@
-from math import e
-
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +10,7 @@ from app.models.message import Message
 from app.core.snowflake import snowflake_gen
 from app.core.security import ALGORITHM, SECRET_KEY
 from app.core.connection import manager
+from app.core.redis import redis_manager
 
 router = APIRouter(prefix="/api/v1", tags=["Gateway"])
 
@@ -86,7 +85,7 @@ async def websocket_endpoint(
             "created_at": new_message.created_at.isoformat()
           }
 
-          await manager.broadcast_to_channel(channel_id, payload)
+          await redis_manager.publish_message(payload)
   except WebSocketDisconnect:
     manager.disconnect(str(user.id))
     

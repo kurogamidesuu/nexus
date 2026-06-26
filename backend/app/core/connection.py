@@ -1,14 +1,33 @@
+import asyncio
 from collections import defaultdict
 from fastapi import WebSocket
+from app.core.redis import redis_manager
 
 class ConnectionManager:
   def __init__(self):
     self.active_connections: dict[str, WebSocket] = {}
     self.channel_subscriptions: dict[str, set[str]] = defaultdict(set)
+    self.redis_listening = False
+  
+  async def start_redis_listener(self):
+    if self.redis_listening:
+      return
+    self.redis_listening = True
+
+    await redis_manager.connect()
+    asyncio.create_task(self._listen_to_redis())
+  
+  async def _listen_to_redis(self):
+    async for message_data in redis_manager.listen():
+      channel_id = message_data.get("channel_id")
+      if channel_id:
+        await self.broadcast_to_channel(channel_id, message_data)
 
   async def connect(self, websocket: WebSocket, user_id: str):
     await websocket.accept()
     self.active_connections[user_id] = websocket
+
+    await self.start_redis_listener()
 
   def disconnect(self, user_id: str):
     self.active_connections.pop(user_id, None)
