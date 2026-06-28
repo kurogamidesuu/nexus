@@ -29,11 +29,26 @@ class ConnectionManager:
 
     await self.start_redis_listener()
 
-  def disconnect(self, user_id: str):
+    await redis_manager.set_user_online(user_id)
+    await redis_manager.publish_message({
+      "action": "presence",
+      "user_id": user_id,
+      "status": "online"
+    })
+
+  async def disconnect(self, user_id: str):
     self.active_connections.pop(user_id, None)
 
     for subscribers in self.channel_subscriptions.values():
       subscribers.discard(user_id)
+
+    await redis_manager.set_user_offline(user_id)
+
+    await redis_manager.publish_message({
+      "action": "presence",
+      "user_id": user_id,
+      "status": "offline"
+    })
 
   def subscribe_to_channel(self, user_id: str, channel_id: str):
     self.channel_subscriptions[channel_id].add(user_id)
@@ -55,6 +70,6 @@ class ConnectionManager:
         try:
           await websocket.send_json(message)
         except Exception:
-          self.disconnect(user_id)
+          await self.disconnect(user_id)
 
 manager = ConnectionManager()

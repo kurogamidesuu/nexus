@@ -1,4 +1,3 @@
-// frontend/src/components/ChannelSidebar.tsx
 import { useEffect, useState } from "react";
 import { guildService } from "../api/guilds";
 import { dmService, type DMChannelResponse } from "../api/dms";
@@ -19,7 +18,6 @@ const ChannelSidebar = ({
 }: Props) => {
   const { user, logout } = useAuth();
 
-  // State for both Server Channels and Direct Messages
   const [channels, setChannels] = useState<ChannelResponse[]>([]);
   const [dms, setDms] = useState<DMChannelResponse[]>([]);
 
@@ -27,20 +25,17 @@ const ChannelSidebar = ({
     const fetchData = async () => {
       try {
         if (activeGuildId) {
-          // We are looking at a Server
           const data = await guildService.getGuildChannels(activeGuildId);
           setChannels(data);
           if (data.length > 0) {
             onSelectChannel(data[0].id, data[0].name);
           }
         } else {
-          // We are in the DM View (activeGuildId is null)
           const data = await dmService.getMyDMs();
           setDms(data);
           if (data.length > 0) {
             onSelectChannel(data[0].id, data[0].recipient_username);
           } else {
-            // Clear the active channel if they have no DMs
             onSelectChannel("", "");
           }
         }
@@ -53,7 +48,6 @@ const ChannelSidebar = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGuildId]);
 
-  // Handle Server Invite Generation
   const handleGenerateInvite = async () => {
     if (!activeGuildId) return;
     try {
@@ -64,7 +58,6 @@ const ChannelSidebar = ({
     }
   };
 
-  // NEW: Handle Starting a DM
   const handleStartDM = async () => {
     const recipientId = prompt(
       "Enter the User ID of the person you want to message:",
@@ -74,7 +67,6 @@ const ChannelSidebar = ({
     try {
       const newDm = await dmService.getOrCreateDM(recipientId.trim());
 
-      // If it doesn't already exist in our list, add it
       setDms((prev) => {
         if (!prev.find((dm) => dm.id === newDm.id)) {
           return [...prev, newDm];
@@ -113,7 +105,6 @@ const ChannelSidebar = ({
       >
         <span>{activeGuildId ? "Server Channels" : "Direct Messages"}</span>
 
-        {/* Render Invite button for servers, and Start DM button for the home view */}
         {activeGuildId ? (
           <button
             onClick={handleGenerateInvite}
@@ -134,7 +125,7 @@ const ChannelSidebar = ({
       </div>
 
       <div className={styles.channelList}>
-        {/* Render Server Channels */}
+        {/* Server Channels */}
         {activeGuildId &&
           channels.map((channel) => (
             <div
@@ -147,7 +138,7 @@ const ChannelSidebar = ({
             </div>
           ))}
 
-        {/* Render Direct Messages */}
+        {/* Direct Messages */}
         {!activeGuildId &&
           dms.map((dm) => (
             <div

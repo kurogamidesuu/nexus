@@ -10,6 +10,7 @@ from app.models.user import User
 from app.core.snowflake import snowflake_gen
 from app.core.security import ALGORITHM, SECRET_KEY, create_access_token, create_refresh_token, get_password_hash, verify_password
 from app.api.deps import get_current_user
+from app.core.redis import redis_manager
 
 router = APIRouter(prefix="/api/v1/users", tags=["Users"])
 
@@ -135,3 +136,7 @@ async def logout_user(response: Response):
   )
 
   return {"detail": "Successfully logged out"}
+
+@router.get("/presence", response_model=list[str])
+async def get_online_presence(current_user: User = Depends(get_current_user)):
+  return await redis_manager.get_online_users()

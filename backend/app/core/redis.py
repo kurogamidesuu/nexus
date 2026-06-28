@@ -23,4 +23,14 @@ class RedisPubSubManager:
       if message["type"] == "message":
         yield json.loads(message["data"])
 
+  async def set_user_online(self, user_id: str):
+    await redis_client.sadd("nexus_online_users", user_id)
+
+  async def set_user_offline(self, user_id: str):
+    await redis_client.srem("nexus_online_users", user_id)
+
+  async def get_online_users(self) -> list[str]:
+    users = await redis_client.smembers("nexus_online_users")
+    return list(users)
+
 redis_manager = RedisPubSubManager()
