@@ -1,5 +1,7 @@
+// frontend/src/components/ChannelSidebar.tsx
 import { useEffect, useState } from "react";
 import { guildService } from "../api/guilds";
+import { dmService, type DMChannelResponse } from "../api/dms";
 import type { ChannelResponse } from "../api/channels";
 import { useAuth } from "../context/AuthContext";
 import styles from "./ChannelSidebar.module.css";
@@ -16,30 +18,42 @@ const ChannelSidebar = ({
   onSelectChannel,
 }: Props) => {
   const { user, logout } = useAuth();
+
+  // State for both Server Channels and Direct Messages
   const [channels, setChannels] = useState<ChannelResponse[]>([]);
+  const [dms, setDms] = useState<DMChannelResponse[]>([]);
 
   useEffect(() => {
-    const fetchChannels = async () => {
-      if (!activeGuildId) {
-        setChannels([]);
-        return;
-      }
+    const fetchData = async () => {
       try {
-        const data = await guildService.getGuildChannels(activeGuildId);
-        setChannels(data);
-
-        if (data.length > 0) {
-          onSelectChannel(data[0].id, data[0].name);
+        if (activeGuildId) {
+          // We are looking at a Server
+          const data = await guildService.getGuildChannels(activeGuildId);
+          setChannels(data);
+          if (data.length > 0) {
+            onSelectChannel(data[0].id, data[0].name);
+          }
+        } else {
+          // We are in the DM View (activeGuildId is null)
+          const data = await dmService.getMyDMs();
+          setDms(data);
+          if (data.length > 0) {
+            onSelectChannel(data[0].id, data[0].recipient_username);
+          } else {
+            // Clear the active channel if they have no DMs
+            onSelectChannel("", "");
+          }
         }
       } catch (error) {
-        console.error("Failed to fetch channels", error);
+        console.error("Failed to fetch sidebar data:", error);
       }
     };
 
-    fetchChannels();
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGuildId]);
 
+  // Handle Server Invite Generation
   const handleGenerateInvite = async () => {
     if (!activeGuildId) return;
     try {
@@ -48,6 +62,43 @@ const ChannelSidebar = ({
     } catch {
       alert("Error generating invite link.");
     }
+  };
+
+  // NEW: Handle Starting a DM
+  const handleStartDM = async () => {
+    const recipientId = prompt(
+      "Enter the User ID of the person you want to message:",
+    );
+    if (!recipientId || !recipientId.trim()) return;
+
+    try {
+      const newDm = await dmService.getOrCreateDM(recipientId.trim());
+
+      // If it doesn't already exist in our list, add it
+      setDms((prev) => {
+        if (!prev.find((dm) => dm.id === newDm.id)) {
+          return [...prev, newDm];
+        }
+        return prev;
+      });
+
+      onSelectChannel(newDm.id, newDm.recipient_username);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        const errorMsg = error.message || "Failed to start conversation.";
+        alert(errorMsg);
+      }
+    }
+  };
+
+  const actionButtonStyle = {
+    background: "transparent",
+    border: "none",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    fontSize: "18px",
+    padding: "0 4px",
+    fontWeight: "bold",
   };
 
   return (
@@ -62,19 +113,20 @@ const ChannelSidebar = ({
       >
         <span>{activeGuildId ? "Server Channels" : "Direct Messages"}</span>
 
-        {activeGuildId && (
+        {/* Render Invite button for servers, and Start DM button for the home view */}
+        {activeGuildId ? (
           <button
             onClick={handleGenerateInvite}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--text-muted)",
-              cursor: "pointer",
-              fontSize: "18px",
-              padding: "0 4px",
-              fontWeight: "bold",
-            }}
+            style={actionButtonStyle}
             title="Create Invite"
+          >
+            +
+          </button>
+        ) : (
+          <button
+            onClick={handleStartDM}
+            style={actionButtonStyle}
+            title="Start Conversation"
           >
             +
           </button>
@@ -82,33 +134,53 @@ const ChannelSidebar = ({
       </div>
 
       <div className={styles.channelList}>
-        {channels.map((channel) => (
-          <div
-            key={channel.id}
-            className={`${styles.channelItem} ${activeChannelId === channel.id ? styles.active : ""}`}
-            onClick={() => onSelectChannel(channel.id, channel.name)}
-          >
-            <span className={styles.hash}>#</span>
-            {channel.name}
-          </div>
-        ))}
+        {/* Render Server Channels */}
+        {activeGuildId &&
+          channels.map((channel) => (
+            <div
+              key={channel.id}
+              className={`${styles.channelItem} ${activeChannelId === channel.id ? styles.active : ""}`}
+              onClick={() => onSelectChannel(channel.id, channel.name)}
+            >
+              <span className={styles.hash}>#</span>
+              {channel.name}
+            </div>
+          ))}
 
-        {!activeGuildId && (
+        {/* Render Direct Messages */}
+        {!activeGuildId &&
+          dms.map((dm) => (
+            <div
+              key={dm.id}
+              className={`${styles.channelItem} ${activeChannelId === dm.id ? styles.active : ""}`}
+              onClick={() => onSelectChannel(dm.id, dm.recipient_username)}
+            >
+              <span className={styles.hash}>@</span>
+              {dm.recipient_username}
+            </div>
+          ))}
+
+        {!activeGuildId && dms.length === 0 && (
           <div
             style={{
               color: "var(--text-muted)",
-              fontSize: "14px",
-              padding: "8px",
+              fontSize: "12px",
+              padding: "16px",
               textAlign: "center",
             }}
           >
-            Friends list coming soon...
+            No active conversations. Click + to start one!
           </div>
         )}
       </div>
 
       <div className={styles.footer}>
-        <span className={styles.username}>{user?.username}</span>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span className={styles.username}>{user?.username}</span>
+          <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+            ID: {user?.id}
+          </span>
+        </div>
         <button className={styles.logoutButton} onClick={logout}>
           Log Out
         </button>

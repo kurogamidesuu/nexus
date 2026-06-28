@@ -29,7 +29,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('channel_id', 'user_id')
     )
-    op.add_column('channels', sa.Column('channel_type', sa.Integer(), nullable=False))
+    op.add_column('channels', sa.Column('channel_type', sa.Integer(), server_default='0', nullable=False))
     op.alter_column('channels', 'name',
                existing_type=sa.VARCHAR(),
                nullable=True)
