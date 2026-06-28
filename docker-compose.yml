@@ -10,6 +10,8 @@ services:
       - POSTGRES_USER=nexus_user
       - POSTGRES_PASSWORD=securepassword
       - POSTGRES_DB=nexus_db
+    volumes:
+      - nexus_pg_data:/var/lib/postgresql/data
 
   redis:
     image: "redis:alpine"
@@ -27,3 +29,6 @@ services:
       - MINIO_ROOT_USER=nexusadmin
       - MINIO_ROOT_PASSWORD=nexusadmin123
     command: server /data --console-address ":9001"
+
+volumes:
+  nexus_pg_data:

@@ -2,16 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.schemas.uploads import UploadRequest
 from app.models.user import User
-from app.api.routers.websockets import get_ws_current_user
+from app.api.deps import get_current_user
 from app.core.snowflake import snowflake_gen
 from app.core.storage import storage_manager
 
 router = APIRouter(prefix="/api/v1/uploads", tags=["Uploads"])
 
-@router.post("/presigned_url")
+@router.post("/presigned-url")
 async def get_presigned_url(
   req: UploadRequest,
-  user: User = Depends(get_ws_current_user)
+  user: User = Depends(get_current_user)
 ):
   if not user:
     raise HTTPException(status_code=401, detail="Unauthorized")

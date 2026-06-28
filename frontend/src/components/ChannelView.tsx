@@ -1,7 +1,14 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ChangeEvent,
+} from "react";
 import styles from "./ChannelView.module.css";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { channelService } from "../api/channels";
+import { uploadService } from "../api/uploads";
 
 interface ChannelViewProps {
   channelId: string;
@@ -11,10 +18,12 @@ interface ChannelViewProps {
 const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
   const [inputValue, setInputValue] = useState("");
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { messages, setMessages, connect, disconnect, sendMessage } =
     useWebSocket(channelId);
   const feedRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -23,9 +32,7 @@ const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
       setIsLoadingHistory(true);
       try {
         const history = await channelService.getMessages(channelId);
-        if (isMounted) {
-          setMessages(history);
-        }
+        if (isMounted) setMessages(history);
       } catch (error) {
         console.error("Failed to load history:", error);
       } finally {
@@ -37,7 +44,6 @@ const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
     };
 
     loadHistoryAndConnect();
-
     return () => {
       isMounted = false;
       disconnect();
@@ -53,9 +59,37 @@ const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-
     sendMessage(inputValue);
     setInputValue("");
+  };
+
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const { upload_url, public_url } = await uploadService.getPresignedUrl(
+        file.name,
+        file.type,
+      );
+
+      await uploadService.uploadFileToCloud(upload_url, file);
+
+      sendMessage(public_url);
+    } catch (error) {
+      alert("Failed to upload file. Check console for details.");
+      console.error(error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const isImageUrl = (url: string) => {
+    return (
+      url.startsWith("http") && url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null
+    );
   };
 
   if (isLoadingHistory) {
@@ -71,13 +105,11 @@ const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <header className={styles.header}>
         <span className={styles.hash}>#</span>
-        <span className={styles.channelName}>{channelName}</span>{" "}
+        <span className={styles.channelName}>{channelName}</span>
       </header>
 
-      {/* Message Feed */}
       <div className={styles.messageFeed} ref={feedRef}>
         {messages.map((msg, index) => (
           <div key={index} className={styles.message}>
@@ -90,14 +122,60 @@ const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
                 })}
               </span>
             </div>
-            <div className={styles.content}>{msg.content}</div>
+            <div className={styles.content}>
+              {isImageUrl(msg.content) ? (
+                <img
+                  src={msg.content}
+                  alt="Uploaded attachment"
+                  style={{
+                    maxWidth: "400px",
+                    maxHeight: "300px",
+                    borderRadius: "8px",
+                    marginTop: "8px",
+                  }}
+                />
+              ) : (
+                msg.content
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Input */}
       <div className={styles.inputWrapper}>
-        <form onSubmit={handleSubmit} className={styles.inputForm}>
+        <form
+          onSubmit={handleSubmit}
+          className={styles.inputForm}
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            style={{ display: "none" }}
+            accept="image/*"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            style={{
+              background: "var(--background-tertiary)",
+              border: "none",
+              color: "var(--text-normal)",
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              cursor: isUploading ? "wait" : "pointer",
+              fontSize: "20px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {isUploading ? "uploading..." : "+"}
+          </button>
+
           <input
             type="text"
             className={styles.input}
@@ -105,7 +183,7 @@ const ChannelView = ({ channelId, channelName }: ChannelViewProps) => {
             onChange={(e) => setInputValue(e.target.value)}
             placeholder={`Message #${channelName}`}
             autoComplete="off"
-            autoCorrect="off"
+            style={{ flex: 1 }}
           />
         </form>
       </div>
