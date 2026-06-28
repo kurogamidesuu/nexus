@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.snowflake import snowflake_gen
-from app.api.routers import users, websockets, channel, guilds, uploads
+from app.api.routers import users, websockets, channel, guilds, uploads, dms
 
 app = FastAPI(
   title="Nexus API",
@@ -22,6 +22,7 @@ app.include_router(websockets.router)
 app.include_router(channel.router)
 app.include_router(guilds.router)
 app.include_router(uploads.router)
+app.include_router(dms.router)
 
 @app.get("/api/v1/snowflake/generate")
 def generate_id():
