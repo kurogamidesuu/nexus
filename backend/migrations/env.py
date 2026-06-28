@@ -16,7 +16,7 @@ from app.core.database import Base
 from app.models.user import User
 from app.models.message import Message
 from app.models.guild import Guild, GuildMember
-from app.models.channel import Channel
+from app.models.channel import Channel, ChannelMember
 from app.models.invite import Invite
 
 config = context.config
