@@ -26,6 +26,15 @@ class ConnectionManager:
           except Exception:
             pass
         continue
+
+      target_user_id = message_data.get("target_use_id")
+      if target_user_id:
+        if target_user_id in self.active_connections:
+          try:
+            await self.active_connections[target_user_id].send_json(message_data)
+          except Exception:
+            pass
+        continue
       
       channel_id = message_data.get("channel_id")
       if channel_id:
