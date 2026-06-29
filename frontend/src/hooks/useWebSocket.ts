@@ -34,11 +34,18 @@ export const useWebSocket = (channelId: string) => {
     };
 
     ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.error) {
-        console.error("Gateway Error:", data.error);
-      } else {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.action === "presence") {
+          const presenceEvent = new CustomEvent("presenceUpdate", {
+            detail: data,
+          });
+          window.dispatchEvent(presenceEvent);
+          return;
+        }
         setMessages((prev) => [...prev, data]);
+      } catch (error) {
+        console.error("Failed to parse websocket message", error);
       }
     };
 

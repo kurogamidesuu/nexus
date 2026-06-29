@@ -4,6 +4,7 @@ import { dmService, type DMChannelResponse } from "../api/dms";
 import type { ChannelResponse } from "../api/channels";
 import { useAuth } from "../context/AuthContext";
 import styles from "./ChannelSidebar.module.css";
+import { userService } from "../api/users";
 
 interface Props {
   activeGuildId: string | null;
@@ -20,6 +21,7 @@ const ChannelSidebar = ({
 
   const [channels, setChannels] = useState<ChannelResponse[]>([]);
   const [dms, setDms] = useState<DMChannelResponse[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +49,37 @@ const ChannelSidebar = ({
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGuildId]);
+
+  useEffect(() => {
+    const fetchPresence = async () => {
+      try {
+        const users = await userService.getPresence();
+        setOnlineUsers(new Set(users));
+      } catch (error) {
+        console.error("Failed to fetch presence", error);
+      }
+    };
+    fetchPresence();
+
+    const handlePresenceUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { user_id, status } = customEvent.detail;
+
+      setOnlineUsers((prev) => {
+        const newSet = new Set(prev);
+        if (status === "online") {
+          newSet.add(user_id);
+        } else {
+          newSet.delete(user_id);
+        }
+        return newSet;
+      });
+    };
+
+    window.addEventListener("presenceUpdate", handlePresenceUpdate);
+    return () =>
+      window.removeEventListener("presenceUpdate", handlePresenceUpdate);
+  }, []);
 
   const handleGenerateInvite = async () => {
     if (!activeGuildId) return;
@@ -145,24 +178,32 @@ const ChannelSidebar = ({
               key={dm.id}
               className={`${styles.channelItem} ${activeChannelId === dm.id ? styles.active : ""}`}
               onClick={() => onSelectChannel(dm.id, dm.recipient_username)}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
             >
-              <span className={styles.hash}>@</span>
-              {dm.recipient_username}
+              <div>
+                <span className={styles.hash}>@</span>
+                {dm.recipient_username}
+              </div>
+
+              {/* THE ONLINE INDICATOR */}
+              {onlineUsers.has(dm.recipient_id) && (
+                <div
+                  style={{
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "50%",
+                    backgroundColor: "#23a559",
+                    flexShrink: 0,
+                  }}
+                  title="Online"
+                />
+              )}
             </div>
           ))}
-
-        {!activeGuildId && dms.length === 0 && (
-          <div
-            style={{
-              color: "var(--text-muted)",
-              fontSize: "12px",
-              padding: "16px",
-              textAlign: "center",
-            }}
-          >
-            No active conversations. Click + to start one!
-          </div>
-        )}
       </div>
 
       <div className={styles.footer}>
