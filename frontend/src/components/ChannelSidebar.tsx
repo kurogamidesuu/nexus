@@ -9,7 +9,7 @@ import { userService } from "../api/users";
 interface Props {
   activeGuildId: string | null;
   activeChannelId: string | null;
-  onSelectChannel: (id: string, name: string) => void;
+  onSelectChannel: (id: string, name: string, type: number) => void;
 }
 
 const ChannelSidebar = ({
@@ -30,15 +30,19 @@ const ChannelSidebar = ({
           const data = await guildService.getGuildChannels(activeGuildId);
           setChannels(data);
           if (data.length > 0) {
-            onSelectChannel(data[0].id, data[0].name);
+            onSelectChannel(
+              data[0].id,
+              data[0].name,
+              data[0].channel_type || 0,
+            );
           }
         } else {
           const data = await dmService.getMyDMs();
           setDms(data);
           if (data.length > 0) {
-            onSelectChannel(data[0].id, data[0].recipient_username);
+            onSelectChannel(data[0].id, data[0].recipient_username, 1);
           } else {
-            onSelectChannel("", "");
+            onSelectChannel("", "", 0);
           }
         }
       } catch (error) {
@@ -107,7 +111,7 @@ const ChannelSidebar = ({
         return prev;
       });
 
-      onSelectChannel(newDm.id, newDm.recipient_username);
+      onSelectChannel(newDm.id, newDm.recipient_username, 1);
     } catch (error: unknown) {
       if (error instanceof Error) {
         const errorMsg = error.message || "Failed to start conversation.";
@@ -164,9 +168,17 @@ const ChannelSidebar = ({
             <div
               key={channel.id}
               className={`${styles.channelItem} ${activeChannelId === channel.id ? styles.active : ""}`}
-              onClick={() => onSelectChannel(channel.id, channel.name)}
+              onClick={() =>
+                onSelectChannel(
+                  channel.id,
+                  channel.name,
+                  channel.channel_type || 0,
+                )
+              }
             >
-              <span className={styles.hash}>#</span>
+              <span className={styles.hash}>
+                {channel.channel_type === 2 ? "🔊" : "#"}
+              </span>
               {channel.name}
             </div>
           ))}
@@ -177,7 +189,7 @@ const ChannelSidebar = ({
             <div
               key={dm.id}
               className={`${styles.channelItem} ${activeChannelId === dm.id ? styles.active : ""}`}
-              onClick={() => onSelectChannel(dm.id, dm.recipient_username)}
+              onClick={() => onSelectChannel(dm.id, dm.recipient_username, 1)}
               style={{
                 display: "flex",
                 justifyContent: "space-between",

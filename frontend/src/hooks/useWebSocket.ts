@@ -89,6 +89,7 @@ export const useWebSocket = (channelId: string) => {
   }, [disconnect]);
 
   return {
+    ws,
     isConnected,
     messages,
     setMessages,

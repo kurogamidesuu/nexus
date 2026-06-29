@@ -1,0 +1,107 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--background-primary);
+  color: white;
+  padding: 24px;
+}
+
+.header {
+  border-bottom: 1px solid var(--background-tertiary);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.grid {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-content: flex-start;
+}
+
+.userCard {
+  width: 150px;
+  height: 150px;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+}
+
+.localCard {
+  border-color: #23a559;
+}
+
+.remoteCard {
+  border-color: #5865f2;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--background-tertiary);
+  margin-bottom: 12px;
+}
+
+.statusText {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.statusActive {
+  color: #23a559;
+}
+
+.statusListening {
+  color: #5865f2;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.actionButton {
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+.btnJoin {
+  background-color: #23a559;
+}
+
+.btnJoin:hover {
+  background-color: #1a7c43;
+}
+
+.btnLeave {
+  background-color: #da373c;
+}
+
+.btnLeave:hover {
+  background-color: #a1282c;
+}

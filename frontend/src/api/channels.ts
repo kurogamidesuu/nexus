@@ -1,10 +1,11 @@
-import type { MessagePayload } from "../hooks/useWebsocket";
+import type { MessagePayload } from "../hooks/useWebSocket";
 import { apiClient } from "./client";
 
 export interface ChannelResponse {
   id: string;
   guild_id: string;
   name: string;
+  channel_type: number;
   created_at: string;
 }
 
