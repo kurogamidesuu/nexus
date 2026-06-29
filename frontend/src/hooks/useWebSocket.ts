@@ -43,6 +43,12 @@ export const useWebSocket = (channelId: string) => {
           window.dispatchEvent(presenceEvent);
           return;
         }
+
+        if (data.action && data.action.startsWith("webrtc_")) {
+          const signalEvent = new CustomEvent("webrtcSignal", { detail: data });
+          window.dispatchEvent(signalEvent);
+          return;
+        }
         setMessages((prev) => [...prev, data]);
       } catch (error) {
         console.error("Failed to parse websocket message", error);
