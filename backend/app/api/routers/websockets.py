@@ -87,5 +87,5 @@ async def websocket_endpoint(
 
           await redis_manager.publish_message(payload)
   except WebSocketDisconnect:
-    manager.disconnect(str(user.id))
+    await manager.disconnect(str(user.id))
     

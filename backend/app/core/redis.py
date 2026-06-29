@@ -31,6 +31,6 @@ class RedisPubSubManager:
 
   async def get_online_users(self) -> list[str]:
     users = await redis_client.smembers("nexus_online_users")
-    return list(users)
+    return [str(user) for user in users]
 
 redis_manager = RedisPubSubManager()

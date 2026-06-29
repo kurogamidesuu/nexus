@@ -19,6 +19,14 @@ class ConnectionManager:
   
   async def _listen_to_redis(self):
     async for message_data in redis_manager.listen():
+      if message_data.get("action") == "presence":
+        for user_id, websocket in list(self.active_connections.items()):
+          try:
+            await websocket.send_json(message_data)
+          except Exception:
+            pass
+        continue
+      
       channel_id = message_data.get("channel_id")
       if channel_id:
         await self.broadcast_to_channel(channel_id, message_data)
